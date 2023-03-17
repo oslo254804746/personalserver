@@ -1,0 +1,18 @@
+version: '3.5'
+services:
+  mariadb:
+    image: 'mariadb:latest'
+    restart: always
+    container_name: "mariadb"
+    expose:
+      - "3306"
+    ports:
+      - "3306:3306"
+    volumes:
+      - "${MARIA_DB_VOLUME}:/var/lib/mysql"
+    environment:
+      - "MARIADB_ROOT_PASSWORD=${MARIA_DB_ROOT_PASSWORD}"
+networks:
+  default:
+      name: example.com
+      external: true

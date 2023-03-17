@@ -1,0 +1,47 @@
+version: "3.5"
+services:
+  thunder:
+    image: "cnk3x/xunlei:latest"
+    container_name: "thunder"
+    hostname: "thunder"
+    privileged: true
+    expose:
+      - "2345"
+    volumes:
+      - "${THUNDER_CONFIG_MOUNT_DIR}:/xunlei/data"
+      - "${THUNDER_DOWNLOAD_DIR}:/xunlei/downloads"
+    environment:
+      - "PUID=0"
+      - "PGID=0"
+      - "UMASK=022"
+    restart: unless-stopped
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.thunder.rule=Host(`thunder.example.com`)'
+      - 'traefik.http.routers.thunder.entrypoints=https'
+      - 'traefik.http.routers.thunder.tls=true'
+      - 'traefik.http.routers.thunder.tls.options=default'
+      - 'traefik.http.services.thunder.loadbalancer.server.port=2345'
+  alist:
+    restart: always
+    volumes:
+      - '${ALIST_SERVE_VOLUME}:/opt/alist/data'
+    expose:
+      - '5244'
+    environment:
+      - "PUID=0"
+      - "PGID=0"
+      - "UMASK=022"
+    container_name: "alist"
+    image: 'xhofe/alist:latest'
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.alist.rule=Host(`alist.example.com`)'
+      - 'traefik.http.routers.alist.entrypoints=https'
+      - 'traefik.http.routers.alist.tls=true'
+      - 'traefik.http.routers.alist.tls.options=default'
+      - 'traefik.http.services.alist.loadbalancer.server.port=5244'
+networks:
+  default:
+      name: example.com
+      external: true

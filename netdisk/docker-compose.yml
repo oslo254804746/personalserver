@@ -1,0 +1,87 @@
+version: '3.5'
+services:
+  photoprism:
+    image: "photoprism/photoprism:latest"
+    container_name: "photoprism"
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.photoprism.rule=Host(`photoviews.example.com`)'
+      - 'traefik.http.routers.photoprism.entrypoints=https'
+      - 'traefik.http.routers.photoprism.tls=true'
+      - 'traefik.http.routers.photoprism.tls.options=default'
+    expose:
+      - "2342"
+    restart: always
+    environment:
+      PHOTOPRISM_ADMIN_USER: "${PHOTOPRISM_ADMIN_USER}"
+      PHOTOPRISM_ADMIN_PASSWORD: "${PHOTOPRISM_ADMIN_PASSWORD}"
+      PHOTOPRISM_AUTH_MODE: "password"
+      PHOTOPRISM_SITE_URL: "https://photoviews.example.com:4430"
+      PHOTOPRISM_ORIGINALS_LIMIT: 5000
+      PHOTOPRISM_HTTP_COMPRESSION: "gzip"
+      PHOTOPRISM_LOG_LEVEL: "info"
+      PHOTOPRISM_READONLY: "false"
+      PHOTOPRISM_EXPERIMENTAL: "false"
+      PHOTOPRISM_DISABLE_CHOWN: "false"
+      PHOTOPRISM_DISABLE_WEBDAV: "false"
+      PHOTOPRISM_DISABLE_SETTINGS: "false"
+      PHOTOPRISM_DISABLE_TENSORFLOW: "false"
+      PHOTOPRISM_DISABLE_FACES: "false"
+      PHOTOPRISM_DISABLE_CLASSIFICATION: "false"
+      PHOTOPRISM_DISABLE_RAW: "false"
+      PHOTOPRISM_RAW_PRESETS: "false"
+      PHOTOPRISM_JPEG_QUALITY: 100
+      PHOTOPRISM_DETECT_NSFW: "false"
+      PHOTOPRISM_UPLOAD_NSFW: "true"
+      PHOTOPRISM_DATABASE_DRIVER: "mysql"
+      PHOTOPRISM_DATABASE_SERVER: "${MYSQL_HOST}"
+      PHOTOPRISM_DATABASE_NAME: "${PHOTOPRISM_MYSQL_DATABASE_NAME}"
+      PHOTOPRISM_DATABASE_USER: "${PHOTOPRISM_MYSQL_DATABASE_USERNAME}"
+      PHOTOPRISM_DATABASE_PASSWORD: "${PHOTOPRISM_MYSQL_DATABASE_PASSWORD}"
+      PHOTOPRISM_SITE_CAPTION: "AI-Powered Photos App"
+      PHOTOPRISM_SITE_DESCRIPTION: "AI-Powered Photos App"
+      PHOTOPRISM_SITE_AUTHOR: "demo"
+    working_dir: "/photoprism"
+    volumes:
+      - "${PHOTOPRISM_PHOTOS_DIR}:/photoprism/originals"
+      - "${PHOTOPRISM_CACHE_DIR}:/photoprism/storage"
+
+  watchtower:
+    restart: unless-stopped
+    image: containrrr/watchtower
+    profiles: ["update"]
+    environment:
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_POLL_INTERVAL: 7200 # checks for updates every two hours
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "~/.docker/config.json:/config.json" # optional, for authentication if you have a Docker Hub account
+  nextcloud:
+    image: "nextcloud"
+    restart: always
+    container_name: "nextcloud"
+    expose:
+      - "80"
+    volumes:
+      - "${MOUNT_VOLUMES}:/var/www/html"
+    environment:
+      - "MYSQL_PASSWORD=${NEXTCLOUD_MYSQL_DATABASE_PASSWORD}"
+      - "MYSQL_DATABASE=${NEXTCLOUD_MYSQL_DATABASE_NAME}"
+      - "MYSQL_USER=${NEXTCLOUD_MYSQL_DATABASE_USERNAME}"
+      - "MYSQL_HOST=${MYSQL_HOST}"
+      - "REDIS_HOST=${REDIS_HOST}"
+      - "REDIS_PORT=${REDIS_PORT}"
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.nextcloud.rule=Host(`nextcloud.example.com`)'
+      - 'traefik.http.routers.nextcloud.entrypoints=https'
+      - 'traefik.http.routers.nextcloud.tls=true'
+      - 'traefik.http.routers.nextcloud.tls.options=default'
+      - "traefik.http.services.nextcloud.loadbalancer.server.port=80"
+networks:
+  default:
+      name: example.com
+      external: true

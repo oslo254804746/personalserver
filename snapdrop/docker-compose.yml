@@ -1,0 +1,19 @@
+version: "3.5"
+services:
+  snapdrop:
+    image: "linuxserver/snapdrop:latest"
+    container_name: "snapdrop"
+    environment:
+      - "PUID=1000"
+      - "PGID=1000"
+      - "TZ=Asia/ShangHai"
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.snapdrop.rule=Host(`snapdrop.example.com`)'
+      - 'traefik.http.routers.snapdrop.entrypoints=https'
+      - 'traefik.http.routers.snapdrop.tls=true'
+      - 'traefik.http.routers.snapdrop.tls.options=default'
+      - "traefik.http.services.snapdrop.loadbalancer.server.port=443"
+    volumes:
+      - "${SNAPDROP_CONFIG_DIR}:/config"
+    restart: unless-stopped

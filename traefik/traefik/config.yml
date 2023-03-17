@@ -1,0 +1,39 @@
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+log:
+  level: INFO
+  format: common
+api:
+  dashboard: true
+  insecure: true
+ping: {}
+accessLog: {}
+providers:
+  docker:
+    watch: true
+    exposedByDefault: false
+    endpoint: 'unix:///var/run/docker.sock'
+    swarmMode: false
+    useBindPortIP: false
+    network: example.com
+  file:
+    watch: true
+    directory: /etc/traefik/
+    debugLogGeneratedTemplate: true
+
+entryPoints:
+  https:
+    address: ':4430'
+
+tls:
+  stores:
+    default:
+      defaultCertificate:
+         certFile: /etc/traefik/cert.pem
+         keyFile: /etc/traefik/key.pem
+  certificates:
+    - certFile: /etc/traefik/cert.pem
+      keyFile: /etc/traefik/key.pem
+      stores:
+        - default

@@ -1,0 +1,28 @@
+version: '3.5'
+
+services:
+  traefik:
+    image: traefik:v2.9.8
+    container_name: traefik
+    restart: always
+    volumes:
+      - ./traefik:/etc/traefik
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - 'traefik.http.routers.dashboard.rule=Host(`traefik.example.com`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`)'
+      - 'traefik.http.routers.dashboard.entrypoints=https'
+      - 'traefik.http.routers.dashboard.service=traefik@internal'
+      - 'traefik.http.routers.services.dashboard.loadbalancer.server.port=8080'
+    ports:
+      - '4430:4430'
+    expose:
+      - '8080'
+    command:
+      - '--configFile=/etc/traefik/config.yml'
+    environment:
+      - TZ=ShangHai
+
+networks:
+  default:
+      name: example.com
+      external: true

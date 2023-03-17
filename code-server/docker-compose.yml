@@ -1,0 +1,23 @@
+version: '3.5'
+services:
+  code-server:
+    image: "codercom/code-server"
+    restart: always
+    container_name: "code-server"
+    expose:
+      - "8080"
+    volumes:
+      - "${CODE_SERVER_PROJECT_DIR}:/home/coder/project"
+    environment:
+      - "DOCKER_USER=server"
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.code-server.rule=Host(`code-server.example.com`)'
+      - 'traefik.http.routers.code-server.entrypoints=https'
+      - 'traefik.http.routers.code-server.tls=true'
+      - 'traefik.http.routers.code-server.tls.options=default'
+
+networks:
+  default:
+      name: example.com
+      external: true

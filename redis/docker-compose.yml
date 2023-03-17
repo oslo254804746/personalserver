@@ -1,0 +1,12 @@
+version: "3.5"
+services:
+  nextcloud:
+    image: "redis:latest"
+    restart: always
+    container_name: redis
+    ports:
+      - "6379:6379"
+networks:
+  default:
+      name: example.com
+      external: true
